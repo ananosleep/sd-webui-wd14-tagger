@@ -1,5 +1,4 @@
 import os
-import gc
 import pandas as pd
 import numpy as np
 
@@ -18,33 +17,21 @@ from . import dbimutils
 
 # select a device to process
 use_cpu = ('all' in shared.cmd_opts.use_cpu) or (
-    'interrogate' in shared.cmd_opts.use_cpu)
-
-if use_cpu:
-    tf_device_name = '/cpu:0'
-else:
-    tf_device_name = '/gpu:0'
-
-    if shared.cmd_opts.device_id is not None:
-        try:
-            tf_device_name = f'/gpu:{int(shared.cmd_opts.device_id)}'
-        except ValueError:
-            print('--device-id is not a integer')
+        'interrogate' in shared.cmd_opts.use_cpu)
 
 
 class Interrogator:
     @staticmethod
     def postprocess_tags(
-        tags: Dict[str, float],
-
-        threshold=0.35,
-        additional_tags: List[str] = [],
-        exclude_tags: List[str] = [],
-        sort_by_alphabetical_order=False,
-        add_confident_as_weight=False,
-        replace_underscore=False,
-        replace_underscore_excludes: List[str] = [],
-        escape_tag=False
+            tags: Dict[str, float],
+            threshold=0.35,
+            additional_tags: List[str] = [],
+            exclude_tags: List[str] = [],
+            sort_by_alphabetical_order=False,
+            add_confident_as_weight=False,
+            replace_underscore=False,
+            replace_underscore_excludes: List[str] = [],
+            escape_tag=False
     ) -> Dict[str, float]:
         for t in additional_tags:
             tags[t] = 1.0
@@ -62,8 +49,8 @@ class Interrogator:
 
             # filter tags
             if (
-                c >= threshold
-                and t not in exclude_tags
+                    c >= threshold
+                    and t not in exclude_tags
             )
         }
 
@@ -105,8 +92,8 @@ class Interrogator:
         return unloaded
 
     def interrogate(
-        self,
-        image: Image
+            self,
+            image: Image
     ) -> Tuple[
         Dict[str, float],  # rating confidents
         Dict[str, float]  # tag confidents
@@ -114,111 +101,13 @@ class Interrogator:
         raise NotImplementedError()
 
 
-class DeepDanbooruInterrogator(Interrogator):
-    def __init__(self, name: str, project_path: os.PathLike) -> None:
-        super().__init__(name)
-        self.project_path = project_path
-
-    def load(self) -> None:
-        print(f'Loading {self.name} from {str(self.project_path)}')
-
-        # deepdanbooru package is not include in web-sd anymore
-        # https://github.com/AUTOMATIC1111/stable-diffusion-webui/commit/c81d440d876dfd2ab3560410f37442ef56fc663
-        from launch import is_installed, run_pip
-        if not is_installed('deepdanbooru'):
-            package = os.environ.get(
-                'DEEPDANBOORU_PACKAGE',
-                'git+https://github.com/KichangKim/DeepDanbooru.git@d91a2963bf87c6a770d74894667e9ffa9f6de7ff'
-            )
-
-            run_pip(
-                f'install {package} tensorflow tensorflow-io', 'deepdanbooru')
-
-        import tensorflow as tf
-
-        # tensorflow maps nearly all vram by default, so we limit this
-        # https://www.tensorflow.org/guide/gpu#limiting_gpu_memory_growth
-        # TODO: only run on the first run
-        for device in tf.config.experimental.list_physical_devices('GPU'):
-            tf.config.experimental.set_memory_growth(device, True)
-
-        with tf.device(tf_device_name):
-            import deepdanbooru.project as ddp
-
-            self.model = ddp.load_model_from_project(
-                project_path=self.project_path,
-                compile_model=False
-            )
-
-            print(f'Loaded {self.name} model from {str(self.project_path)}')
-
-            self.tags = ddp.load_tags_from_project(
-                project_path=self.project_path
-            )
-
-    def unload(self) -> bool:
-        # unloaded = super().unload()
-
-        # if unloaded:
-        #     # tensorflow suck
-        #     # https://github.com/keras-team/keras/issues/2102
-        #     import tensorflow as tf
-        #     tf.keras.backend.clear_session()
-        #     gc.collect()
-
-        # return unloaded
-
-        # There is a bug in Keras where it is not possible to release a model that has been loaded into memory.
-        # Downgrading to keras==2.1.6 may solve the issue, but it may cause compatibility issues with other packages.
-        # Using subprocess to create a new process may also solve the problem, but it can be too complex (like Automatic1111 did).
-        # It seems that for now, the best option is to keep the model in memory, as most users use the Waifu Diffusion model with onnx.
-
-        return False
-
-    def interrogate(
-        self,
-        image: Image
-    ) -> Tuple[
-        Dict[str, float],  # rating confidents
-        Dict[str, float]  # tag confidents
-    ]:
-        # init model
-        if not hasattr(self, 'model') or self.model is None:
-            self.load()
-
-        import deepdanbooru.data as ddd
-
-        # convert an image to fit the model
-        image_bufs = BytesIO()
-        image.save(image_bufs, format='PNG')
-        image = ddd.load_image_for_evaluate(
-            image_bufs,
-            self.model.input_shape[2],
-            self.model.input_shape[1]
-        )
-
-        image = image.reshape((1, *image.shape[0:3]))
-
-        # evaluate model
-        result = self.model.predict(image)
-
-        confidents = result[0].tolist()
-        ratings = {}
-        tags = {}
-
-        for i, tag in enumerate(self.tags):
-            tags[tag] = confidents[i]
-
-        return ratings, tags
-
-
 class WaifuDiffusionInterrogator(Interrogator):
     def __init__(
-        self,
-        name: str,
-        model_path='model.onnx',
-        tags_path='selected_tags.csv',
-        **kwargs
+            self,
+            name: str,
+            model_path='model.onnx',
+            tags_path='selected_tags.csv',
+            **kwargs
     ) -> None:
         super().__init__(name)
         self.model_path = model_path
@@ -264,8 +153,8 @@ class WaifuDiffusionInterrogator(Interrogator):
         self.tags = pd.read_csv(tags_path)
 
     def interrogate(
-        self,
-        image: Image
+            self,
+            image: Image
     ) -> Tuple[
         Dict[str, float],  # rating confidents
         Dict[str, float]  # tag confidents
