@@ -18,6 +18,11 @@ def refresh_interrogators() -> List[str]:
             repo_id='SmilingWolf/wd-v1-4-convnextv2-tagger-v2',
             revision='v2.0'
         ),
+        'wd14-moat-v2': WaifuDiffusionInterrogator(
+            'wd-v1-4-moat-tagger-v2',
+            repo_id='SmilingWolf/wd-v1-4-moat-tagger-v2',
+            revision='v2.0'
+        ),
         'wd14-vit-v2': WaifuDiffusionInterrogator(
             'wd14-vit-v2',
             repo_id='SmilingWolf/wd-v1-4-vit-tagger-v2',
