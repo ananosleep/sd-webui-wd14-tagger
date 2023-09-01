@@ -27,26 +27,26 @@ def unload_interrogators():
 
 
 def on_interrogate(
-    image: Image,
-    batch_input_glob: str,
-    batch_input_recursive: bool,
-    batch_output_dir: str,
-    batch_output_filename_format: str,
-    batch_output_action_on_conflict: str,
-    batch_remove_duplicated_tag: bool,
-    batch_output_save_json: bool,
+        image: Image,
+        batch_input_glob: str,
+        batch_input_recursive: bool,
+        batch_output_dir: str,
+        batch_output_filename_format: str,
+        batch_output_action_on_conflict: str,
+        batch_remove_duplicated_tag: bool,
+        batch_output_save_json: bool,
 
-    interrogator: str,
-    threshold: float,
-    additional_tags: str,
-    exclude_tags: str,
-    sort_by_alphabetical_order: bool,
-    add_confident_as_weight: bool,
-    replace_underscore: bool,
-    replace_underscore_excludes: str,
-    escape_tag: bool,
+        interrogator: str,
+        threshold: float,
+        additional_tags: str,
+        exclude_tags: str,
+        sort_by_alphabetical_order: bool,
+        add_confident_as_weight: bool,
+        replace_underscore: bool,
+        replace_underscore_excludes: str,
+        escape_tag: bool,
 
-    unload_model_after_running: bool
+        unload_model_after_running: bool
 ):
     if interrogator not in utils.interrogators:
         return ['', None, None, f"'{interrogator}' is not a valid interrogator"]
@@ -212,7 +212,6 @@ def on_ui_tabs():
     with gr.Blocks(analytics_enabled=False) as tagger_interface:
         with gr.Row(equal_height=False):
             with gr.Column(variant='panel'):
-
                 # input components
                 with gr.Tabs():
                     with gr.TabItem(label='Single process'):
@@ -249,8 +248,8 @@ def on_ui_tabs():
 
                         import hashlib
                         with gr.Accordion(
-                            label='Output filename formats',
-                            open=False
+                                label='Output filename formats',
+                                open=False
                         ):
                             gr.Markdown(
                                 value=f'''
