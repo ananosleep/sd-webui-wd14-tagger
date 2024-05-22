@@ -105,13 +105,13 @@ class WaifuDiffusionInterrogator(Interrogator):
     def __init__(
             self,
             name: str,
-            model_path='model.onnx',
-            tags_path='selected_tags.csv',
+            model_path = None,
+            tags_path = None,
             **kwargs
     ) -> None:
         super().__init__(name)
-        self.model_path = model_path
-        self.tags_path = tags_path
+        self.model_path = model_path if model_path is not None else 'model.onnx'
+        self.tags_path = tags_path if tags_path is not None else 'selected_tags.csv'
         self.kwargs = kwargs
 
     def download(self) -> Tuple[os.PathLike, os.PathLike]:
